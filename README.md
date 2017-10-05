@@ -1,4 +1,4 @@
-ud120-projects
+Udacity Intro to Machine Learning Mini Projects
 ==============
 
-Starter project code for students taking Udacity ud120
+Starter project code is given by Udacity
