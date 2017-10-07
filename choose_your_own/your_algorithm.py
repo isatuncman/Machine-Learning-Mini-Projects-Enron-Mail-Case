@@ -26,9 +26,22 @@ plt.xlabel("bumpiness")
 plt.ylabel("grade")
 plt.show()
 ################################################################################
+from sklearn.neighbors import KNeighborsClassifier
+#clf = KNeighborsClassifier(n_neighbors=3)
+clf = KNeighborsClassifier(n_neighbors=4)
 
+clf.fit(features_train, labels_train)
+pred = clf.predict(features_test)
 
-### your code here!  name your classifier object clf if you want the 
+counter = 0
+for i in range(len(pred)):
+    if pred[i] == labels_test[i]:
+        counter += 1.0
+
+accuracy = counter/len(pred)
+print accuracy
+
+### your code here!  name your classifier object clf if you want the
 ### visualization code (prettyPicture) to show you the decision boundary
 
 
