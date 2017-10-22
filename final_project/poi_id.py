@@ -95,6 +95,24 @@ plt.show()
 
 ### Task 3: Create new feature(s)
 
+#1) bonus/salary ratio: Can be useful if some low salaried people takes
+#large amount of bonuses
+
+#2)  from_this_person_to_poi' / 'from_messages' ratio : the fraction of messages
+#from this person to poi
+
+#3) 'from_poi_to_this_person' / 'to_messages'the fraction of messages
+#to this person from poi
+
+for key in data_dict:
+    data_dict[key]['bonus_salary_ratio'] = round((float(data_dict[key]['bonus']) / float(data_dict[key]['salary'])),3)
+    data_dict[key]['from_this_person_fraction'] = round((float(data_dict[key]['from_this_person_to_poi']) / float(data_dict[key]['from_messages'])),3)
+    data_dict[key]['from_poi_to_this_person_fraction'] = round((float(data_dict[key]['from_poi_to_this_person']) / float(data_dict[key]['to_messages'])),3)
+
+    #print 'Bonus_salary_ratio', data_dict[key]['bonus_salary_ratio']
+    #print 'from_this_person_fraction', data_dict[key]['from_this_person_fraction']
+    #print 'from_poi_to_this_person_fraction', data_dict[key]['from_poi_to_this_person_fraction']
+
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 
