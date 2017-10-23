@@ -16,13 +16,14 @@ financial_features = ['salary', 'deferral_payments',
 'deferred_income', 'total_stock_value', 'expenses', 'exercised_stock_options',
  'other', 'long_term_incentive', 'restricted_stock', 'director_fees']
 
-email_features = ['to_messages', 'email_address', 'from_poi_to_this_person',
+email_features = ['to_messages', 'from_poi_to_this_person',
  'from_messages', 'from_this_person_to_poi', 'shared_receipt_with_poi']
 
 POI_label = ['poi']
 
 features_list = ['poi','salary'] # You will need to use more features
 
+all_features = POI_label + financial_features + email_features
 
 
 ### Load the dictionary containing the dataset
@@ -57,6 +58,13 @@ for key in data_dict:
                 missing_dict[feature] =1
 print 'Missing fields: ', missing_dict
 
+#Missing fields:  {'salary': 51, 'to_messages': 60, 'deferral_payments': 107,
+# 'total_payments': 21, 'long_term_incentive': 80, 'loan_advances': 142,
+#'bonus': 64, 'restricted_stock': 36, 'restricted_stock_deferred': 128,
+#'total_stock_value': 20, 'shared_receipt_with_poi': 60, 'from_poi_to_this_person': 60,
+#'exercised_stock_options': 44, 'from_messages': 60, 'other': 53,
+#'from_this_person_to_poi': 60, 'deferred_income': 97, 'expenses': 51,
+#'email_address': 35, 'director_fees': 129}
 
 
 
@@ -93,6 +101,13 @@ plt.xlabel("salary")
 plt.ylabel("bonus")
 plt.show()
 
+
+
+
+
+
+
+
 ### Task 3: Create new feature(s)
 
 #1) bonus/salary ratio: Can be useful if some low salaried people takes
@@ -104,10 +119,24 @@ plt.show()
 #3) 'from_poi_to_this_person' / 'to_messages'the fraction of messages
 #to this person from poi
 
+
+
 for key in data_dict:
-    data_dict[key]['bonus_salary_ratio'] = round((float(data_dict[key]['bonus']) / float(data_dict[key]['salary'])),3)
-    data_dict[key]['from_this_person_fraction'] = round((float(data_dict[key]['from_this_person_to_poi']) / float(data_dict[key]['from_messages'])),3)
-    data_dict[key]['from_poi_to_this_person_fraction'] = round((float(data_dict[key]['from_poi_to_this_person']) / float(data_dict[key]['to_messages'])),3)
+    if  data_dict[key]['from_this_person_to_poi'] != 'NaN':
+        data_dict[key]['from_this_person_fraction'] = float(data_dict[key]['from_this_person_to_poi']) / float(data_dict[key]['from_messages'])
+
+    else:
+        data_dict[key]['from_this_person_fraction'] = 'NaN'
+
+    if data_dict[key]['from_poi_to_this_person'] != 'NaN':
+        data_dict[key]['from_poi_to_this_person_fraction'] = float(data_dict[key]['from_poi_to_this_person']) / float(data_dict[key]['to_messages'])
+    else:
+        data_dict[key]['from_poi_to_this_person_fraction'] = 'NaN'
+    if data_dict[key]['salary'] != 'NaN' and data_dict[key]['bonus'] != 'NaN':
+        data_dict[key]['salary_bonus_ratio'] = float(data_dict[key]['salary'])/float(data_dict[key]['bonus'])
+    else:
+        data_dict[key]['salary_bonus_ratio'] = 'NaN'
+
 
     #print 'Bonus_salary_ratio', data_dict[key]['bonus_salary_ratio']
     #print 'from_this_person_fraction', data_dict[key]['from_this_person_fraction']
@@ -116,11 +145,21 @@ for key in data_dict:
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 
+#for key in data_dict:
+#    print key, data_dict[key]['bonus_salary_ratio'], data_dict[key]['salary']
+#    print key, data_dict[key]['from_this_person_fraction'], data_dict[key]['from_messages']
+#    print key, data_dict[key]['from_poi_to_this_person_fraction'], data_dict[key]['to_messages']
 
+all_features = all_features + ['from_this_person_fraction'] + ['from_poi_to_this_person_fraction'] + ['salary_bonus_ratio']
 
 ### Extract features and labels from dataset for local testing
-data = featureFormat(my_dataset, features_list, sort_keys = True)
+data = featureFormat(my_dataset, all_features, sort_keys = True)
 labels, features = targetFeatureSplit(data)
+
+#print 'Labels:', labels
+#print 'Features:', features
+
+
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
@@ -128,9 +167,53 @@ labels, features = targetFeatureSplit(data)
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
+#Feature selection algorithm
+from sklearn.feature_selection import SelectKBest
+skb = SelectKBest(k = 22)
+
+#Scaler function
+from sklearn import preprocessing
+scaler = preprocessing.MinMaxScaler()
+
+#Import pipeline
+from sklearn.pipeline import Pipeline
+
+
+
 # Provided to give you a starting point. Try a variety of classifiers.
+# Naive Bayes
 from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
+pipe_g = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("NaiveBayes", GaussianNB())])
+parameters_g ={'SKB__k': range(1,23)}
+
+#Support Vector Machine
+from sklearn import svm
+pipe_svm = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("SVM", svm.SVC())])
+
+#Decision Tree
+from sklearn import tree
+pipe_dt = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("DTC", tree.DecisionTreeClassifier())])
+parameters_dt = {'SKB__k': range(1,23),
+'DTC__criterion': ['gini', 'entropy'],
+'DTC__min_samples_split': [2, 10, 20],
+'DTC__max_depth': [None, 2, 5, 10],
+'DTC__min_samples_leaf': [1, 5, 10],
+'DTC__max_leaf_nodes': [None, 5, 10, 20]}
+
+#K neighbors
+from sklearn.neighbors import KNeighborsClassifier
+pipe_kn = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("KNN", KNeighborsClassifier())])
+parameters_kn ={"SKB__k": range(1,23),
+    "KNN__n_neighbors": [2,4,6,8],
+    "KNN__weights": ["uniform", "distance"],
+    "KNN__algorithm": ["auto", "ball_tree", "kd_tree", "brute"]}
+
+#Random forest
+from sklearn.ensemble import RandomForestClassifier
+pipe_rf = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("RFC", RandomForestClassifier())])
+
+
+
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
@@ -140,13 +223,33 @@ clf = GaussianNB()
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
-from sklearn.cross_validation import train_test_split
-features_train, features_test, labels_train, labels_test = \
-    train_test_split(features, labels, test_size=0.3, random_state=42)
+#from sklearn.cross_validation import train_test_split
+#features_train, features_test, labels_train, labels_test = \
+#   train_test_split(features, labels, test_size=0.3, random_state=42)
+
+#Due to small dataset, we use tratifiedShuffleSplit
+from sklearn.cross_validation import StratifiedShuffleSplit, train_test_split, cross_val_score
+sk_fold = StratifiedShuffleSplit(labels, 100, random_state = 42)
+
+#Use GridSearchCV to find best parameters
+from sklearn.model_selection import GridSearchCV
+
+
+
+#Naive Bayes GridsearchCV
+gs = GridSearchCV(pipe_kn, param_grid = parameters_kn, cv=sk_fold, scoring = 'f1')
+gs.fit(features, labels)
+clf = gs.best_estimator_
+
+
+print 'best algorithm using strat_s_split'
+print clf
+print gs.best_params_
+print gs.best_score_
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
 
-dump_classifier_and_data(clf, my_dataset, features_list)
+dump_classifier_and_data(clf, my_dataset, all_features)
