@@ -47,5 +47,29 @@ pred = clf.predict(features_train)
 
 
 print clf.score(features_test, labels_test)
+
 #calculate the number of features
 print len(features_train)
+
+
+importances = clf.feature_importances_
+
+counter =-1
+biggest = 0
+mylist = []
+
+for i in importances:
+    counter +=1
+    if i > 0.2:
+        mylist.append(i)
+
+    if i > biggest and i> 0.2:
+        biggest =i
+        result = [biggest, counter]
+
+# Find the most common word
+new_order = numpy.argsort(importances)[::-1]
+feature_words = vectorizer.get_feature_names()
+print feature_words[result[1]]
+print result
+print mylist, len(mylist)
