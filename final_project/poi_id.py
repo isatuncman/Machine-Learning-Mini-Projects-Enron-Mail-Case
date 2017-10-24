@@ -186,14 +186,11 @@ from sklearn.naive_bayes import GaussianNB
 pipe_g = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("NaiveBayes", GaussianNB())])
 parameters_g ={'SKB__k': range(1,23)}
 
-#Support Vector Machine
-from sklearn import svm
-pipe_svm = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("SVM", svm.SVC())])
 
 #Decision Tree
 from sklearn import tree
 pipe_dt = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("DTC", tree.DecisionTreeClassifier())])
-parameters_dt = {'SKB__k': range(1,23),
+parameters_dt = {'SKB__k': [1,2,3,4,5,10,23],
 'DTC__criterion': ['gini', 'entropy'],
 'DTC__min_samples_split': [2, 10, 20],
 'DTC__max_depth': [None, 2, 5, 10],
@@ -203,14 +200,11 @@ parameters_dt = {'SKB__k': range(1,23),
 #K neighbors
 from sklearn.neighbors import KNeighborsClassifier
 pipe_kn = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("KNN", KNeighborsClassifier())])
-parameters_kn ={"SKB__k": range(1,23),
-    "KNN__n_neighbors": [2,4,6,8],
+parameters_kn ={"SKB__k": range(1,10),
+    "KNN__n_neighbors": [2,3,4,5,6,8,10],
     "KNN__weights": ["uniform", "distance"],
     "KNN__algorithm": ["auto", "ball_tree", "kd_tree", "brute"]}
 
-#Random forest
-from sklearn.ensemble import RandomForestClassifier
-pipe_rf = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("RFC", RandomForestClassifier())])
 
 
 
@@ -247,6 +241,19 @@ print clf
 print gs.best_params_
 print gs.best_score_
 
+skb_step = gs.best_estimator_.named_steps['SKB']
+
+# Get SelectKBest scores, rounded to 2 decimal places, name them "feature_scores"
+feature_scores = ['%.2f' % elem for elem in skb_step.scores_ ]
+
+# Get SelectKBest pvalues, rounded to 3 decimal places, name them "feature_scores_pvalues"
+feature_scores_pvalues = ['%.4f' % elem for elem in  skb_step.pvalues_ ]
+
+# Get SelectKBest feature names, whose indices are stored in 'skb_step.get_support',
+# create a tuple of feature names, scores and pvalues, name it "features_selected_tuple"
+features_selected_tuple=[(all_features[i+1], feature_scores[i], feature_scores_pvalues[i]) for i in skb_step.get_support(indices=True)]
+
+print 'Selected features:', features_selected_tuple
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
 ### that the version of poi_id.py that you submit can be run on its own and
