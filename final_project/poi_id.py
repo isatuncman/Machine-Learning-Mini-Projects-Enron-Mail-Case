@@ -190,7 +190,7 @@ parameters_g ={'SKB__k': range(1,23)}
 #Decision Tree
 from sklearn import tree
 pipe_dt = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("DTC", tree.DecisionTreeClassifier())])
-parameters_dt = {'SKB__k': [1,2,3,4,5,10,23],
+parameters_dt = {'SKB__k': [1,2,3,4,5,10,20],
 'DTC__criterion': ['gini', 'entropy'],
 'DTC__min_samples_split': [2, 10, 20],
 'DTC__max_depth': [None, 2, 5, 10],
@@ -231,7 +231,7 @@ from sklearn.model_selection import GridSearchCV
 
 
 #Naive Bayes GridsearchCV
-gs = GridSearchCV(pipe_kn, param_grid = parameters_kn, cv=sk_fold, scoring = 'f1')
+gs = GridSearchCV(pipe_dt, param_grid = parameters_dt, cv=sk_fold, scoring = 'f1')
 gs.fit(features, labels)
 clf = gs.best_estimator_
 
@@ -252,8 +252,10 @@ feature_scores_pvalues = ['%.4f' % elem for elem in  skb_step.pvalues_ ]
 # Get SelectKBest feature names, whose indices are stored in 'skb_step.get_support',
 # create a tuple of feature names, scores and pvalues, name it "features_selected_tuple"
 features_selected_tuple=[(all_features[i+1], feature_scores[i], feature_scores_pvalues[i]) for i in skb_step.get_support(indices=True)]
-
 print 'Selected features:', features_selected_tuple
+
+
+
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
 ### that the version of poi_id.py that you submit can be run on its own and
