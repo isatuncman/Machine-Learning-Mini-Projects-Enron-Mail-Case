@@ -3,6 +3,7 @@
 import sys
 import pickle
 sys.path.append("../tools/")
+from time import time
 
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
@@ -76,30 +77,30 @@ features = ["salary", "bonus"]
 #    print key
 
 
-# Plot before outliers are removed
-data = featureFormat(data_dict, features)
-for point in data:
-    salary = point[0]
-    bonus = point[1]
-    plt.scatter( salary, bonus )
+## Plot before outliers are removed
+#data = featureFormat(data_dict, features)
+#for point in data:
+#    salary = point[0]
+#    bonus = point[1]
+#    plt.scatter( salary, bonus )
 
-plt.xlabel("salary")
-plt.ylabel("bonus")
-plt.show()
+#plt.xlabel("salary")
+#plt.ylabel("bonus")
+#plt.show()
 
 data_dict.pop('TOTAL',0)
 data_dict.pop('THE TRAVEL AGENCY IN THE PARK',0)
 
-# Plot after outliers are removed
-data = featureFormat(data_dict, features)
-for point in data:
-    salary = point[0]
-    bonus = point[1]
-    plt.scatter( salary, bonus )
+## Plot after outliers are removed
+#data = featureFormat(data_dict, features)
+#for point in data:
+#    salary = point[0]
+#    bonus = point[1]
+#    plt.scatter( salary, bonus )
 
-plt.xlabel("salary")
-plt.ylabel("bonus")
-plt.show()
+#plt.xlabel("salary")
+#plt.ylabel("bonus")
+#plt.show()
 
 
 
@@ -182,28 +183,28 @@ from sklearn.pipeline import Pipeline
 
 # Provided to give you a starting point. Try a variety of classifiers.
 # Naive Bayes
-from sklearn.naive_bayes import GaussianNB
-pipe_g = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("NaiveBayes", GaussianNB())])
-parameters_g ={'SKB__k': range(1,23)}
+#from sklearn.naive_bayes import GaussianNB
+#pipe_g = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("NaiveBayes", GaussianNB())])
+#parameters_g ={'SKB__k': range(1,23)}
 
 
 #Decision Tree
 from sklearn import tree
 pipe_dt = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("DTC", tree.DecisionTreeClassifier())])
-parameters_dt = {'SKB__k': [1,2,3,4,5,10,20],
+parameters_dt = {'SKB__k': [2,5,10,20],
 'DTC__criterion': ['gini', 'entropy'],
 'DTC__min_samples_split': [2, 10, 20],
-'DTC__max_depth': [None, 2, 5, 10],
-'DTC__min_samples_leaf': [1, 5, 10],
-'DTC__max_leaf_nodes': [None, 5, 10, 20]}
+'DTC__max_depth': [None, 2, 10],
+'DTC__min_samples_leaf': [1, 10],
+'DTC__max_leaf_nodes': [None, 10]}
 
 #K neighbors
-from sklearn.neighbors import KNeighborsClassifier
-pipe_kn = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("KNN", KNeighborsClassifier())])
-parameters_kn ={"SKB__k": range(1,10),
-    "KNN__n_neighbors": [2,3,4,5,6,8,10],
-    "KNN__weights": ["uniform", "distance"],
-    "KNN__algorithm": ["auto", "ball_tree", "kd_tree", "brute"]}
+#from sklearn.neighbors import KNeighborsClassifier
+#pipe_kn = Pipeline(steps=[('scaling',scaler),("SKB", skb), ("KNN", KNeighborsClassifier())])
+#parameters_kn ={"SKB__k": range(1,10),
+#    "KNN__n_neighbors": [2,3,4,5,6,8,10],
+#    "KNN__weights": ["uniform", "distance"],
+#    "KNN__algorithm": ["auto", "ball_tree", "kd_tree", "brute"]}
 
 
 
@@ -231,9 +232,11 @@ from sklearn.model_selection import GridSearchCV
 
 
 #Naive Bayes GridsearchCV
+t0 = time()
 gs = GridSearchCV(pipe_dt, param_grid = parameters_dt, cv=sk_fold, scoring = 'f1')
 gs.fit(features, labels)
 clf = gs.best_estimator_
+print "DecisionTreeClassifier time: ", round(time()-t0, 3), "s"
 
 
 print 'best algorithm using strat_s_split'
